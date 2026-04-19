@@ -1,0 +1,132 @@
+FULL BACKEND SETUP + Run
+
+Run the backend
+From repo root:
+
+
+cd /workspaces/Housing-price-prediction
+source .venv/bin/activate
+pip install -r housing_project/requirements.txt fastapi uvicorn
+uvicorn housing_project.main:app --reload --host 127.0.0.1 --port 8000
+
+
+This starts the FastAPI backend at http://127.0.0.1:8000.
+
+This is the complete backend flow.
+It includes activating .venv, installing dependencies, and starting FastAPI.
+
+
+
+
+
+
+FULL FRONTEND SETUP + RUN  (RUn the frontend commands from the frontend directory)
+
+
+cd /workspaces/Housing-price-prediction/frontend
+npm install
+npm run dev
+
+
+
+
+
+
+SHORT RUN COMMANDS
+
+Backend: uvicorn housing_project.main:app --reload --host 0.0.0.0 --port 8000
+Frontend: npm run dev -- --host 0.0.0.0 --port 5173
+
+
+This is just the command to start backend and frontend servers.
+It assumes backend environment is already activated and frontend deps already installed.
+
+
+
+
+
+Yes — start the backend first, then run the frontend.
+
+
+
+
+
+Browser URLs
+Backend: http://127.0.0.1:8000
+Frontend: http://127.0.0.1:5173
+
+
+
+
+Why the previous link failed
+Because you started the backend on 127.0.0.1:8000, it was only listening on the container’s local loopback interface.
+
+127.0.0.1 means “only accept connections from inside the same machine/container”
+0.0.0.0 means “accept connections from any network interface”
+In a remote/devcontainer environment:
+
+your browser is outside the container
+127.0.0.1:8000 inside the container is not the same as localhost:8000 on your host
+so the browser could not reach it
+
+
+What changed
+
+When you used:
+uvicorn housing_project.main:app --reload --host 0.0.0.0 --port 8000
+
+the backend started listening on all interfaces, making it reachable through the forwarded host port.
+
+Short answer
+Previous command: backend only reachable inside container
+New command: backend reachable from your host/browser via port forwarding
+That’s why the first link did not work, but the second one did.
+
+
+
+
+
+
+5173 is working as Private because:
+
+You open the private forwarded URL directly in your browser.
+VS Code authenticates you to access that URL.
+The frontend page loads fine.
+8000 needs to be Public because:
+
+The frontend code running in your browser makes API calls to 8000.
+Those calls come from your browser, not through VS Code's authentication.
+If 8000 is Private, your browser can't reach it.
+Public allows the browser to access the backend endpoint.
+Answer
+No, keep 5173 Private. It's working fine because you're accessing it directly. Making it Public would only expose it to the internet unnecessarily.
+
+5173 → Private ✓
+8000 → Public ✓
+This is the right setup.
+
+
+
+Why 8000 needs Public but 5173 works Private
+5173 (Private) — You open the forwarded private URL directly in your browser. VS Code authenticates you and gives you access.
+8000 (Private) — When the browser makes API calls from the frontend code (fetch() to the backend), it can't use VS Code's private authentication. The browser makes a direct HTTP request that needs the backend to be publicly accessible.
+So the difference is:
+
+Direct browser access to the frontend → can be private
+Browser API calls to the backend → must be public (or at least reachable from the browser)
+In Production (Deployment)
+Yes, both would be publicly accessible, but in a different way:
+
+Frontend → hosted on a web server (Vercel, Netlify, etc.) at a public URL like https://yourapp.com
+Backend → hosted on an API server (Heroku, AWS, etc.) at a public URL like https://api.yourapp.com or https://yourapp.herokuapp.com
+There would be no concept of "private/public ports" — both would simply be running on standard web ports (443 for HTTPS) and accessible via domain names on the internet.
+
+
+
+ctlr+alt+I opens the ai chatbot on github codespaces
+
+
+
+
+
+
